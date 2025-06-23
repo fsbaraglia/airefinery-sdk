@@ -36,7 +36,7 @@ All the APIs integrated in the AI Refinery™ SDK are detailed in [API page](htt
 We recommend using a MacOS or a Linux system to install the SDK. For Windows setup, we recommend using **WSL (Windows Subsystem Linux)**, a Linux kernel you can access from Windows. For instructions on installing WSL, please visit [this page](https://documentation.ubuntu.com/wsl/en/latest/guides/install-ubuntu-wsl2/). Please use **Ubuntu Distro 22.04** or above.
 
 ```bash
-pip install "git+https://github.com/Accenture/airefinery-sdk.git@main"
+pip install airefinery-sdk
 ```
 
 ## Examples
@@ -120,7 +120,7 @@ utility_agents:
 
 3. Create you first DistillerClient
 
-[`DistillerClient`](../api-reference/distiller-index.md) API creates a distiller client. This client will interface with the AI Refinery™ service to run your project. Below is a function that sets up the distiller client. Here's what it does:  
+[`DistillerClient`](https://sdk.airefinery.accenture.com/setup/api-reference/distiller-index/) API creates a distiller client. This client will interface with the AI Refinery™ service to run your project. Below is a function that sets up the distiller client. Here's what it does:  
 
 - Authenticate you using `AIREFINERY_ACCOUNT` and `AIREFINERY_API_KEY` from your os envenvironment variables.
 - Defines the `simple_agent` function that will cover the scope of the `Assistant Agent` using AI Refinery™ Inference-as-a-service.  
@@ -133,20 +133,20 @@ utility_agents:
 import asyncio
 import os
 
-from openai import AsyncOpenAI
+from air import login, DistillerClient, AsyncAIRefinery
 
-from air import login, DistillerClient
+API_KEY =str(os.getenv("AIREFINERY_API_KEY"))
 
 auth = login(
     account=str(os.getenv("AIREFINERY_ACCOUNT")),
-    api_key=str(os.getenv("AIREFINERY_API_KEY")),
+    api_key=API_KEY,
 )
 
 async def simple_agent(query: str):
     global auth
 
     prompt = "You are an AI assistant that helps users navigate their projects."
-    client = AsyncOpenAI(**auth.openai())
+    client = AsyncAIRefinery(**auth.openai())
 
     response = await client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
@@ -154,12 +154,12 @@ async def simple_agent(query: str):
     )
     return response.choices[0].message.content
 
-def distiller_client_test():
-    distiller_client = DistillerClient()
+async def distiller_client_test():
+    client = AsyncAIRefinery(api_key=API_KEY)
     project_name = "my_first_project"
 
     # upload your config file to register a new distiller project
-    distiller_client.create_project(config_path="example.yaml", project=project_name) 
+    client.distiller.create_project(config_path="example.yaml", project=project_name) 
 
     # Define a mapping between your custom agent to Callable.
     # When the custom agent is summoned by the super agent / orchestrator,
@@ -168,7 +168,7 @@ def distiller_client_test():
     executor_dict = {
         "Assistant Agent": simple_agent,
     }
-    async with distiller_client(
+    async with client.distiller(
         project=project_name,
         uuid="test_user",
         executor_dict=executor_dict,
@@ -179,7 +179,8 @@ def distiller_client_test():
 
 if __name__ == "__main__":
 
-    distiller_client_test()
+    asyncio.run(distiller_client_test())
+
 
 ```
 
@@ -197,11 +198,18 @@ Running these commands will create your project on the AI Refinery™ server and
 
 ## Releases & Versioning
 `airefinery-sdk` is currently on version `1.MINOR.PATCH`.
+
 The `airefinery-sdk` package defines the main interfaces and runtime logic for the entire AIRefinery Platform. To maintain stability, we will clearly announce any breaking changes in advance and reflect them through appropriate version updates and deprecation announcement.
 As a rule, any changes that break compatibility in stable parts of the API will result in a minor or major version update, depending on the scope of the change.
+
 ### Minor version increases will occur for:
+
 - Introduction of new agents or capabilities
+
 - Additions to supported features
+
 ### Patch version increases will occur for:
+
 - Bug fixes
+
 - Minor improvements or refinements that do not affect API stability
