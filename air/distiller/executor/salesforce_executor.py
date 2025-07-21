@@ -53,7 +53,7 @@ class SalesforceSessionManager:
         token = token_info.get("access_token")
         return token
 
-    def initiate_session(self):
+    async def initiate_session(self):
         """
         Initiates a new Salesforce agent session.
         """
@@ -160,6 +160,10 @@ class SalesforceExecutor(Executor):
             logger.exception("Failed to retrieve connection token")
             raise
 
+        # Initialize session placeholder
+        self.session_id = None
+        self.sequence_id = None
+
         # Initialize the base Executor with our specialized execution method.
         super().__init__(
             func=self._execute_agent,
@@ -171,10 +175,21 @@ class SalesforceExecutor(Executor):
             return_string=return_string,
         )
 
-    def _execute_agent(self, **kwargs) -> str:
+    async def _execute_agent(self, **kwargs) -> str:
         """
         Executes the Salesforce agent using a prompt.
         """
+        if not self.session_id:
+            try:
+                # Create a new session with the Salesfoce agent.
+                self.session_id, self.sequence_id, welcome_msg = (
+                    await self.session_manager.initiate_session()
+                )
+                logger.info("Successfully created new session %s.", self.session_id)
+            except Exception:
+                logger.exception("Failed to create session with the Salesforce agent.")
+                raise
+
         prompt = kwargs.get("prompt")
         if not prompt:
             raise ValueError(
@@ -183,24 +198,16 @@ class SalesforceExecutor(Executor):
 
         logger.debug("Running Salesforce agent with prompt=%r", prompt)
         # Execute the asynchronous agent run in a synchronous context.
-        return asyncio.run(self._process_agent_request(prompt))
+        return await self._process_agent_request(prompt)
 
     async def _process_agent_request(self, prompt: str) -> str:
         """Processes the agent request asynchronously."""
         try:
-            # Create a new session with the Salesfoce agent.
-            session_id, sequence_id, welcome_msg = (
-                self.session_manager.initiate_session()
-            )
-            logger.info("Successfully created new session %s.", session_id)
-        except Exception:
-            logger.exception("Failed to create session with the Salesforce agent.")
-            raise
-
-        try:
             # Post the user prompt as a message within the conversation session.
             response = self.session_manager.send_message(
-                session_id=session_id, sequence_id=sequence_id, message_text=prompt
+                session_id=self.session_id,
+                sequence_id=self.sequence_id,
+                message_text=prompt,
             )
         except Exception:
             logger.exception("Failed to post message for Salesforce agent.")
