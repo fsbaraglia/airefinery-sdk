@@ -1,9 +1,8 @@
 import asyncio
 import json
 import logging
-from typing import Any, Callable, Dict, List, Optional
-
 from contextlib import asynccontextmanager
+from typing import Any, Callable, Dict, List, Optional
 
 from mcp import ClientSession
 from mcp.client.sse import sse_client
@@ -46,6 +45,9 @@ class MCPExecutor(Executor):
         if not self._sse_url:
             raise ValueError("'mcp_sse_url' missing from utility_config")
 
+        # Lock to serialize access to MCP server to prevent concurrency issues
+        self._mcp_server_lock = asyncio.Lock()
+
         super().__init__(
             func={},
             send_queue=send_queue,
@@ -62,61 +64,66 @@ class MCPExecutor(Executor):
         """
         Return the remote tool list in OpenAI function‑calling format.
         """
-        async with _session_context(self._sse_url) as session:
-            tools_response = await session.list_tools()
-            formatted: List[Dict[str, Any]] = []
+        async with self._mcp_server_lock:
+            async with _session_context(self._sse_url) as session:
+                tools_response = await session.list_tools()
+                formatted: List[Dict[str, Any]] = []
 
-            for tool in tools_response.tools:
-                params_raw = tool.inputSchema or {}
-                if not isinstance(params_raw, dict):
-                    logger.warning(
-                        "Tool %s inputSchema isn't dict – coercing to object", tool.name
+                for tool in tools_response.tools:
+                    params_raw = tool.inputSchema or {}
+                    if not isinstance(params_raw, dict):
+                        logger.warning(
+                            "Tool %s inputSchema isn't dict – coercing to object",
+                            tool.name,
+                        )
+                        params_raw = {}
+
+                    # Normalise to JSON‑Schema object form
+                    if "type" not in params_raw:
+                        params_raw = {"type": "object", "properties": params_raw}
+                    params_raw.setdefault("properties", {})
+                    params_raw.setdefault(
+                        "required", list(params_raw["properties"].keys())
                     )
-                    params_raw = {}
 
-                # Normalise to JSON‑Schema object form
-                if "type" not in params_raw:
-                    params_raw = {"type": "object", "properties": params_raw}
-                params_raw.setdefault("properties", {})
-                params_raw.setdefault("required", list(params_raw["properties"].keys()))
+                    formatted.append(
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": tool.name,
+                                "description": tool.description
+                                or f"Tool '{tool.name}' on {self._sse_url}",
+                                "parameters": params_raw,
+                            },
+                        }
+                    )
 
-                formatted.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": tool.name,
-                            "description": tool.description
-                            or f"Tool '{tool.name}' on {self._sse_url}",
-                            "parameters": params_raw,
-                        },
-                    }
-                )
-
-            return json.dumps(formatted)
+                return json.dumps(formatted)
 
     async def _invoke_tool(self, name: str, arguments: Dict[str, Any]) -> str:
         """
         Execute a single tool call.
         """
-        async with _session_context(self._sse_url) as session:
-            logger.info("Calling remote MCP tool '%s'", name)
-            result = await session.call_tool(name, arguments)
+        async with self._mcp_server_lock:
+            async with _session_context(self._sse_url) as session:
+                logger.info("Calling remote MCP tool '%s'", name)
+                result = await session.call_tool(name, arguments)
 
-            parts: List[str] = []
-            for part in result.content or []:  # type: ignore[attr-defined]
-                text_payload = getattr(part, "text", None)
-                if isinstance(text_payload, str) and text_payload:
-                    parts.append(text_payload)
-                    continue
+                parts: List[str] = []
+                for part in result.content or []:  # type: ignore[attr-defined]
+                    text_payload = getattr(part, "text", None)
+                    if isinstance(text_payload, str) and text_payload:
+                        parts.append(text_payload)
+                        continue
 
-                json_payload = getattr(part, "json", None)
-                if json_payload is not None:
-                    try:
-                        parts.append(json.dumps(json_payload))
-                    except TypeError:
-                        parts.append(str(json_payload))
+                    json_payload = getattr(part, "json", None)
+                    if json_payload is not None:
+                        try:
+                            parts.append(json.dumps(json_payload))
+                        except TypeError:
+                            parts.append(str(json_payload))
 
-            return "\n".join(parts) if parts else str(result)
+                return "\n".join(parts) if parts else str(result)
 
     async def __call__(self, request_id: str, *args, **kwargs):
         action = kwargs.pop("action", None)

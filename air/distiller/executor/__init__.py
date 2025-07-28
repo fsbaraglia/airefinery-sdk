@@ -20,6 +20,7 @@ _AGENT_CLASS_MAP = {
     "AzureAIAgent": ("air.distiller.executor.azure_executor", "AzureExecutor"),
     "MCPClientAgent": ("air.distiller.executor.mcp_executor", "MCPExecutor"),
     "WriterAIAgent": ("air.distiller.executor.writer_executor", "WriterExecutor"),
+    "A2AClientAgent": ("air.distiller.executor.a2a_executor", "A2AExecutor"),
     "SalesforceAgent": (
         "air.distiller.executor.salesforce_executor",
         "SalesforceExecutor",
@@ -31,6 +32,10 @@ _AGENT_CLASS_MAP = {
     "AmazonBedrockAgent": (
         "air.distiller.executor.amazon_bedrock_executor",
         "AmazonBedrockExecutor",
+    ),
+    "DatabricksAgent": (
+        "air.distiller.executor.databricks_executor",
+        "DatabricksExecutor",
     ),
 }
 
