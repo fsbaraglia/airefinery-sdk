@@ -29,7 +29,7 @@ The AI Refinery™ SDK is engineered to facilitate the development of AI solutio
 
 Comprehensive documentation for the SDK is available on the [official documentation website](https://sdk.airefinery.accenture.com/).
 
-All the APIs integrated in the AI Refinery™ SDK are detailed in [API page](https://sdk.airefinery.accenture.com/setup/api-reference/distiller-index/).
+All the APIs integrated in the AI Refinery™ SDK are detailed in [API page](https://sdk.airefinery.accenture.com/api-reference/).
 
 ## Installation
 
@@ -63,11 +63,11 @@ The RAI module is a [**Responsible AI**](https://sdk.airefinery.accenture.com/tu
 This exmaple introduces [**The Knowledge Extraction API**](https://sdk.airefinery.accenture.com/tutorial/knowledge_extraction/knowledge_extraction/) that allows you to send a document and then extract the knowledge/information contained within the documents. This example demonstrates:
 
 - How to perform knowledge extraction tasks from your PPTX, PDF, DOCX, PPT, and DOC files. 
-- The [DocumentProcessingClient](https://sdk.airefinery.accenture.com/setup/api-reference/knowledge-extraction-index/).
+- The [DocumentProcessingClient](https://sdk.airefinery.accenture.com/api-reference/knowledge_api/knowledge-extraction-index/).
 - How to construct a knowledge database for your project.
 
 
-### 5. For more examples, check all our tutorials [here](https://sdk.airefinery.accenture.com/tutorial/).
+### 5. For more examples, check all our tutorials [here](https://sdk.airefinery.accenture.com/tutorial/general_guidelines/).
 
 
 ## Quickstart
@@ -94,7 +94,7 @@ You can start by configuring the orchestrator for this project to have access to
   - A `CustomAgent` with the name `Assistant Agent` that you implement and add to executor_dict `executor_dict`
   - An AIRefienry built-in utility agent named `Search Agent.` that you can call and use as-is 
 
-The settings for each of these utility agents are specified under `utility_agents`. You have the flexibility to expand your project based on your requirements. You can add additional custom agents that you define in the future or integrate built-in agents from our [agent library](../../distiller/agent-library/). 
+The settings for each of these utility agents are specified under `utility_agents`. You have the flexibility to expand your project based on your requirements. You can add additional custom agents that you define in the future or integrate built-in agents from our [agent library](https://sdk.airefinery.accenture.com/distiller/agent-library/). 
 
 ```yaml
 orchestrator:
@@ -120,7 +120,7 @@ utility_agents:
 
 3. Create you first DistillerClient
 
-[`DistillerClient`](https://sdk.airefinery.accenture.com/setup/api-reference/distiller-index/) API creates a distiller client. This client will interface with the AI Refinery™ service to run your project. Below is a function that sets up the distiller client. Here's what it does:  
+[`DistillerClient`](https://sdk.airefinery.accenture.com/api-reference/distiller-index/) API creates a distiller client. This client will interface with the AI Refinery™ service to run your project. Below is a function that sets up the distiller client. Here's what it does:  
 
 - Authenticate you using `AIREFINERY_ACCOUNT` and `AIREFINERY_API_KEY` from your os envenvironment variables.
 - Defines the `simple_agent` function that will cover the scope of the `Assistant Agent` using AI Refinery™ Inference-as-a-service.  

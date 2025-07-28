@@ -2,7 +2,7 @@
 
 from setuptools import find_packages, setup
 
-VERSION = "1.12.0"
+VERSION = "1.12.1"
 
 
 setup(
@@ -49,6 +49,12 @@ setup(
                 ],
                 "tah-aws-ai": [
                     "boto3==1.38.36",
+                ],
+                "tah-a2a": [
+                    "a2a-sdk==0.2.8",
+                ],
+                "tah-databricks": [
+                    "databricks-sdk==0.57.0",
                 ],
             }
         ),
