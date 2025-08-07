@@ -1,11 +1,12 @@
 import asyncio
 import json
 import logging
+from urllib import request
 from contextlib import asynccontextmanager
 from typing import Any, Callable, Dict, List, Optional
 
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamablehttp_client
 
 from air.distiller.executor.executor import Executor
 
@@ -13,15 +14,24 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def _session_context(sse_url: str):
+async def _session_context(mcp_url: str, auth_token: str = None) -> ClientSession:
     """
     Create a short‑lived MCP ClientSession bound to a single coroutine.
     """
-    async with sse_client(sse_url) as (read, write):
+
+    headers = {'Authorization': f'Bearer {auth_token}'} if auth_token else {}
+
+    # Connect to a streamable HTTP server
+    async with streamablehttp_client  (mcp_url, headers) as (
+        read,
+        write,
+        _,
+    ):
+        # Create a session using the client streams
         async with ClientSession(read, write) as session:
+            # Initialize the connection
             await session.initialize()
             yield session
-
 
 class MCPExecutor(Executor):
     """
@@ -41,9 +51,13 @@ class MCPExecutor(Executor):
         utility_config: Dict[str, Any],
         return_string: bool = True,
     ) -> None:
-        self._sse_url: str = utility_config.get("mcp_sse_url", "")
-        if not self._sse_url:
-            raise ValueError("'mcp_sse_url' missing from utility_config")
+        self._mcp_url: str = utility_config.get("mcp_url", "")
+        if not self._mcp_url:
+            raise ValueError("'mcp_url' missing from utility_config")
+        
+        self._auth_token: str = utility_config.get("auth_token", "")
+        if not self._auth_token:
+            raise ValueError("'auth_token' missing from utility_config")
 
         # Lock to serialize access to MCP server to prevent concurrency issues
         self._mcp_server_lock = asyncio.Lock()
@@ -58,15 +72,20 @@ class MCPExecutor(Executor):
             return_string=return_string,
         )
 
-        logger.info("MCPExecutor initialized for %s", self._sse_url)
+        logger.info("MCPExecutor initialized for %s", self._mcp_url)
 
     async def _json_tools(self) -> str:
         """
         Return the remote tool list in OpenAI function‑calling format.
         """
         async with self._mcp_server_lock:
-            async with _session_context(self._sse_url) as session:
+            async with _session_context(self._mcp_url, self._auth_token) as session:
+                # Initialize the connection
+                await session.initialize()
+                # List available tools
                 tools_response = await session.list_tools()
+                print(f"Available tools: {[tool.name for tool in tools_response.tools]}")
+
                 formatted: List[Dict[str, Any]] = []
 
                 for tool in tools_response.tools:
@@ -92,7 +111,7 @@ class MCPExecutor(Executor):
                             "function": {
                                 "name": tool.name,
                                 "description": tool.description
-                                or f"Tool '{tool.name}' on {self._sse_url}",
+                                or f"Tool '{tool.name}' on {self._mcp_url}",
                                 "parameters": params_raw,
                             },
                         }
@@ -105,7 +124,7 @@ class MCPExecutor(Executor):
         Execute a single tool call.
         """
         async with self._mcp_server_lock:
-            async with _session_context(self._sse_url) as session:
+            async with _session_context(self._mcp_url, self._auth_token) as session:
                 logger.info("Calling remote MCP tool '%s'", name)
                 result = await session.call_tool(name, arguments)
 
