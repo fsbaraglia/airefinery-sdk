@@ -8,7 +8,7 @@ import os
 import requests
 
 from air.distiller.executor.executor import Executor
-
+from air.types.distiller.executor.salesforce_config import SalesforceAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -132,19 +132,13 @@ class SalesforceExecutor(Executor):
             uuid,
         )
 
-        # Validate required fields in utility_config.
-        client_key_varname = utility_config.get("client_key")
-        client_secret_varname = utility_config.get("client_secret")
-        self.domain = utility_config.get("domain")
-        self.agent_id = utility_config.get("agent_id")
-        if not self.domain:
-            raise ValueError(
-                "Missing 'domain' in utility_config for SalesforceExecutor."
-            )
-        if not self.agent_id:
-            raise ValueError(
-                "Missing 'agent_id' in utility_config for SalesforceExecutor."
-            )
+        salesforce_config = SalesforceAgentConfig(**utility_config)
+
+        # Retrieve required fields in utility_config.
+        client_key_varname = salesforce_config.client_key
+        client_secret_varname = salesforce_config.client_secret
+        self.domain = salesforce_config.domain
+        self.agent_id = salesforce_config.agent_id
 
         try:
             # Initialize connection by retrieving the authentication token

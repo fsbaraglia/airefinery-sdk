@@ -45,6 +45,7 @@ Example usage:
 import aiohttp
 import requests
 
+from air import __version__
 from air.types import ChatCompletion
 
 
@@ -67,12 +68,14 @@ class ChatCompletionsClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): Base URL of the API (e.g. "https://api.airefinery.accenture.com").
+
             api_key (str): API key for authorization.
             default_headers (dict[str, str] | None): Headers to include in every request,
                 e.g. {"X-Client-Version": "1.2.3"}.
         """
         self.base_url = base_url
         self.api_key = api_key
+
         # Store default headers, or default to an empty dict if not provided
         self.default_headers = default_headers or {}
 
@@ -115,6 +118,7 @@ class ChatCompletionsClient:  # pylint: disable=too-few-public-methods
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)
@@ -151,6 +155,7 @@ class ChatClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): The API base URL, e.g. "https://api.airefinery.accenture.com".
+
             api_key (str): Your API key for authentication.
             default_headers (dict[str, str] | None): Headers that apply to all requests
                 in this client, e.g., {"X-Client-Version": "1.2.3"}.
@@ -181,12 +186,14 @@ class AsyncChatCompletionsClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): Base URL of the API, e.g. "https://api.airefinery.accenture.com".
+
             api_key (str): API key for authorization.
             default_headers (dict[str, str] | None): Headers included in every request
                 made by this client, e.g., {"X-Client-Version": "1.2.3"}.
         """
         self.base_url = base_url
         self.api_key = api_key
+
         self.default_headers = default_headers or {}
 
     async def create(
@@ -228,6 +235,7 @@ class AsyncChatCompletionsClient:  # pylint: disable=too-few-public-methods
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)
@@ -261,6 +269,7 @@ class AsyncChatClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): The API base URL, e.g. "https://api.airefinery.accenture.com".
+
             api_key (str): Your API key for authentication.
             default_headers (dict[str, str] | None): Headers that apply to all requests
                 in this client, e.g. {"X-Client-Version": "1.2.3"}.

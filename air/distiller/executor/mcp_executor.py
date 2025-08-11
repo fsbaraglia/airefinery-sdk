@@ -8,6 +8,7 @@ from mcp import ClientSession
 from mcp.client.sse import sse_client
 
 from air.distiller.executor.executor import Executor
+from air.types.distiller.executor.mcp_config import MCPClientAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,11 @@ class MCPExecutor(Executor):
         utility_config: Dict[str, Any],
         return_string: bool = True,
     ) -> None:
-        self._sse_url: str = utility_config.get("mcp_sse_url", "")
-        if not self._sse_url:
-            raise ValueError("'mcp_sse_url' missing from utility_config")
+
+        mcp_config = MCPClientAgentConfig(**utility_config)
+
+        # Retrieve required fields from utility_config.
+        self._sse_url = mcp_config.mcp_sse_url
 
         # Lock to serialize access to MCP server to prevent concurrency issues
         self._mcp_server_lock = asyncio.Lock()

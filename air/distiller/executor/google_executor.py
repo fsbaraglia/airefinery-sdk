@@ -5,6 +5,7 @@ import logging
 from typing import Any, Callable, Dict, Optional
 
 from air.distiller.executor.executor import Executor
+from air.types.distiller.executor.google_config import GoogleAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -70,12 +71,10 @@ class GoogleExecutor(Executor):
             uuid,
         )
 
-        # Validate required fields
-        resource_name: Optional[str] = utility_config.get("resource_name")
-        if not resource_name:
-            raise ValueError(
-                "Missing 'resource_name' in utility_config for GoogleExecutor."
-            )
+        google_config = GoogleAgentConfig(**utility_config)
+
+        # Retrieve required fields from utility_config.
+        resource_name = google_config.resource_name
 
         # Fetch agent engine
         try:

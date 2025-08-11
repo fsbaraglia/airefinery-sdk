@@ -62,18 +62,22 @@ class AsyncDistillerClient:
     max_size_ws_recv = 167772160
     ping_interval = 10
 
-    def __init__(self, *, base_url: str = "", **kwargs) -> None:
+    def __init__(self, *, base_url: str = "", api_key: str = "", **kwargs) -> None:
         """
         Initialize the AsyncDistillerClient with authentication details.
 
         Args:
             base_url (str, optional): Base URL for the API. Defaults to "".
+            api_key (str): API key for authorization. Defaults to "".
         """
         super().__init__()
 
         # Authenticate using provided account and API key
         self.account = auth.account
-        string_check(self.account)
+        if api_key:
+            self.api_key = api_key
+        else:
+            self.api_key = auth.api_key
 
         # Use the provided base URL or the default one
         self.base_url = __base_url__ if base_url == "" else base_url
@@ -142,8 +146,9 @@ class AsyncDistillerClient:
         # Prepare the headers with the API key for authentication
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {auth.get_access_token()}",
             "airefinery_account": self.account,
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
 
         # Determine the base URL
@@ -194,8 +199,9 @@ class AsyncDistillerClient:
         # Prepare the headers with the API key for authentication
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {auth.get_access_token()}",
             "airefinery_account": self.account,
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
 
         # Determine the base URL

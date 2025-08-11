@@ -16,6 +16,8 @@ import requests
 from httpx import Response
 
 from air.distiller.executor.executor import Executor
+from air.types.distiller.executor.writer_config import WriterAIAgentConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,23 +77,15 @@ class WriterExecutor(Executor):
             project,
             uuid,
         )
-        # Validate required fields
-        application_id_str = utility_config.get("application_id")
 
-        if application_id_str is None or not application_id_str.strip():
-            raise ValueError(
-                "Missing required configuration 'application_id_str' "
-                "in utility_config."
-            )
+        writer_config = WriterAIAgentConfig(**utility_config)
+
+        # Retrieve required fields in utility_config.
+        application_id_str = writer_config.application_id
 
         self.application_id = application_id_str.strip()
 
-        writer_key_varname = utility_config.get("api_key_env_var")
-
-        if writer_key_varname is None or not writer_key_varname.strip():
-            raise ValueError(
-                "Missing required configuration 'api_key_env_var' in utility_config."
-            )
+        writer_key_varname = writer_config.api_key_env_var
 
         # Get the token from local to access writer AI agent.
         writer_key = os.getenv(writer_key_varname.strip())

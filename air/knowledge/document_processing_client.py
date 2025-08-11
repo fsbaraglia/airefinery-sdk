@@ -11,7 +11,7 @@ from typing import Dict, List, Union
 
 import requests
 
-from air import __base_url__, auth
+from air import __base_url__, __version__, auth
 from air.api.vector_db import VectorDBRegistry
 from air.knowledge.pipeline import (
     ChunkingRegistry,
@@ -152,6 +152,7 @@ class DocumentProcessingClient:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {auth.get_access_token()}",
+            "sdk_version": __version__,
             "airefinery_account": auth.account,
         }
 
