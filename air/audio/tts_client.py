@@ -13,6 +13,7 @@ from typing import Any
 import aiohttp
 import requests
 
+from air import __version__
 from air.types.audio import TTSResponse
 
 
@@ -79,6 +80,7 @@ class AsyncTTSClient:  # pylint: disable=too-few-public-methods
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "Accept": "application/octet-stream",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)
@@ -162,6 +164,7 @@ class TTSClient:  # pylint: disable=too-few-public-methods
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "Accept": "application/octet-stream",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)

@@ -5,6 +5,7 @@ import logging
 from typing import Any, Callable, Dict, Optional
 
 from air.distiller.executor.executor import Executor
+from air.types.distiller.executor.azure_config import AzureAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +67,11 @@ class AzureExecutor(Executor):
             uuid,
         )
 
-        # Validate required fields in utility_config.
-        agent_id = utility_config.get("agent_id")
-        connection_string = utility_config.get("connection_string")
-        if not agent_id:
-            raise ValueError("Missing 'agent_id' in utility_config for AzureExecutor.")
-        if not connection_string:
-            raise ValueError(
-                "Missing 'connection_string' in utility_config for AzureExecutor."
-            )
+        azure_config = AzureAgentConfig(**utility_config)
+
+        # Retrieve required fields from utility_config.
+        agent_id = azure_config.agent_id
+        connection_string = azure_config.connection_string
 
         try:
             # Initialize the Azure project client using the provided connection string

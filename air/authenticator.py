@@ -1,11 +1,10 @@
-import json
-import time
-from typing import Optional, Any
 import logging
+import time
+from typing import Any, Optional
 
 import requests
 
-from air import __token_url__, __base_url__
+from air import __base_url__, __version__
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ class Authenticator:
         self,
         account: Optional[str] = None,
         api_key: Optional[str] = None,
-        oauth_server: Optional[str] = "",
+        base_url: Optional[str] = None,
     ):
         """
         Initialize the Authenticator, attempting to log in using provided credentials.
@@ -28,35 +27,41 @@ class Authenticator:
         Args:
             account (Optional[str]): Account name for authentication.
             api_key (Optional[str]): API key for authentication.
+            base_url (Optional[str]): Base URL AIRefinery API; if not provided, defaults are used.
         """
+        print(
+            "The Authenticator class is going to be "
+            "deprecated in future releases. "
+            "AIRefinery authentication has been integrated into the connection itself."
+        )
         if account is None:
             return
-
+        if base_url is None or base_url == "":
+            self.base_url = __base_url__
+        else:
+            self.base_url = base_url
         self.account = account
-        self.api_key = api_key
-        self.oauth_server = "" if oauth_server is None else oauth_server.strip()
+        self.api_key = api_key if api_key else ""
         self.access_token = self.login()
         self.time = time.time()
 
     def openai(self, base_url: Optional[str] = None) -> dict[str, Any]:
         """
-        Prepare and return configuration for OpenAI API interaction.
+        Prepare and return configuration for interaction with AIRefineru Inference service.
 
         Args:
-            base_url (Optional[str]): Base URL for the OpenAI API; if not provided, defaults are used.
+            base_url (Optional[str]): Base URL AIRefinery API; if not provided, defaults are used.
 
         Returns:
             dict[str, Any]: Dictionary containing base_url, api_key, and default_headers.
         """
         if base_url is None or base_url == "":
-            base_url = f"{__base_url__}/inference"
+            base_url = f"{self.base_url}/inference"
         else:
             base_url = f"{base_url}/inference"
-
         return {
             "base_url": base_url,
             "api_key": self.login(),
-            "default_headers": {"airefinery_account": self.account},
         }
 
     def login(self) -> str:
@@ -68,44 +73,21 @@ class Authenticator:
         """
         try:
             headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "sdk_version": __version__,
             }
-            data = None
-            oauth_url = __token_url__  # by default for azure cloud
-            if not self.oauth_server:  # self.oauth_server is None or ""
-                data = {
-                    "client_id": self.account,
-                    "scope": "https://graph.microsoft.com/.default",
-                    "client_secret": self.api_key,
-                    "grant_type": "client_credentials",
-                }
-            elif self.oauth_server.endswith(".amazoncognito.com"):  # AWS OAuth
-                data = {
-                    "client_id": self.account,
-                    "client_secret": self.api_key,
-                    "grant_type": "client_credentials",
-                }
-                oauth_url = f"{self.oauth_server}/oauth2/token"
-            else:
-                data = {
-                    "client_id": self.account,
-                    "client_secret": self.api_key,
-                    "grant_type": "client_credentials",
-                }
-                oauth_url = f"{self.oauth_server}/realms/airefinery-realm/protocol/openid-connect/token"
-            response = requests.post(
-                oauth_url,
-                headers=headers,
-                data=data,
-                timeout=10,  # Specify an appropriate timeout
-            )
+            data = {
+                "api_key": self.api_key,
+            }
+            url = f"{self.base_url}/authentication/validate"
+
+            response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
-            response_json = response.json()
-            access_token = response_json["access_token"]
-            return access_token
-        except (requests.RequestException, json.JSONDecodeError, KeyError) as e:
+        except requests.RequestException as e:
             logger.error("Failed to login: %s", e)
             return ""
+        return self.api_key
 
     def get_access_token(self) -> str:
         """
@@ -114,9 +96,4 @@ class Authenticator:
         Returns:
             str: The valid access token.
         """
-        if time.time() - self.time < self.timeout:
-            assert self.access_token is not None
-            return self.access_token
-        self.access_token = self.login()
-        self.time = time.time()
-        return self.access_token
+        return self.login()

@@ -10,7 +10,7 @@ import json
 from databricks.sdk import WorkspaceClient
 
 from air.distiller.executor.executor import Executor
-from air.types.distiller.executor.db_config import DatabricksAgentConfig
+from air.types.distiller.executor.databricks_config import DatabricksAgentConfig
 
 logger = logging.getLogger(__name__)
 

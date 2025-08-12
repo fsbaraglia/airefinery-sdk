@@ -87,6 +87,7 @@ class AsyncAIRefinery:  # pylint: disable=too-many-instance-attributes,too-few-p
         Initializes the asynchronous unified client with sub-clients.
 
         Args:
+
             api_key (str): Your API key or token for authenticated requests.
             base_url (str, optional): Base URL for your API endpoints.
                 Defaults to "https://api.airefinery.accenture.com".
@@ -94,6 +95,7 @@ class AsyncAIRefinery:  # pylint: disable=too-many-instance-attributes,too-few-p
                 every request made by sub-clients (e.g., {"X-Client-Version": "1.2.3"}).
             **kwargs: Additional configuration parameters, if any.
         """
+
         self.api_key = api_key
         self.base_url = base_url
         self.default_headers = default_headers or {}
@@ -209,6 +211,7 @@ class AIRefinery:  # pylint: disable=too-many-instance-attributes,too-few-public
         Initializes the synchronous unified client with sub-clients.
 
         Args:
+
             api_key (str): Your API key or token for authenticated requests.
             base_url (str, optional): Base URL for your API endpoints.
                 Defaults to "https://api.airefinery.accenture.com".
@@ -216,6 +219,7 @@ class AIRefinery:  # pylint: disable=too-many-instance-attributes,too-few-public
                 every request made by sub-clients (e.g., {"X-Client-Version": "1.2.3"}).
             **kwargs: Additional configuration parameters, if any.
         """
+
         self.api_key = api_key
         self.base_url = base_url
         self.default_headers = default_headers or {}

@@ -38,7 +38,7 @@ class DatabricksAgentConfig(BaseModel):
         host_url = self.host_url
         genie_space_id = self.genie_space_id
 
-        if not client_id:
+        if client_id == "":
             raise ValueError(
                 "Missing 'client_id' in utility_config for DatabricksExecutor."
             )

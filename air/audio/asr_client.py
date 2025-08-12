@@ -15,6 +15,7 @@ from typing import IO, Union
 import aiohttp
 import requests
 
+from air import __version__
 from air.types import ASRResponse
 from air.types.audio import ChunkingStrategy
 
@@ -108,6 +109,7 @@ class AsyncASRClient:  # pylint: disable=too-few-public-methods
         # Start with built-in auth/JSON headers
         headers = {
             "Authorization": f"Bearer {self.api_key}",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)
@@ -209,6 +211,7 @@ class ASRClient:  # pylint: disable=too-few-public-methods
         # Start with built-in auth/JSON headers
         headers = {
             "Authorization": f"Bearer {self.api_key}",
+            "sdk_version": __version__,
         }
         # Merge in default_headers
         headers.update(self.default_headers)

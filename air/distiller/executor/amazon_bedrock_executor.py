@@ -8,6 +8,7 @@ import uuid
 from typing import Any, Callable, Dict
 
 from air.distiller.executor.executor import Executor
+from air.types.distiller.executor.amazon_bedrock_config import AmazonBedrockAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -164,34 +165,15 @@ class AmazonBedrockExecutor(Executor):
             uuid,
         )
 
-        # Validate required fields in utility_config.
-        client_key_varname = utility_config.get("client_key")
-        client_secret_varname = utility_config.get("client_secret")
-        deployment_region = utility_config.get("deployment_region")
-        agent_id = utility_config.get("agent_id")
-        alias_id = utility_config.get("alias_id")
-        session_id = utility_config.get("session_id", "")
+        amazon_bedrock_config = AmazonBedrockAgentConfig(**utility_config)
 
-        if not client_key_varname:
-            raise ValueError(
-                "Missing 'client_key' in utility_config for AmazonBedrockExecutor."
-            )
-        if not client_secret_varname:
-            raise ValueError(
-                "Missing 'client_secret' in utility_config for AmazonBedrockExecutor."
-            )
-        if not deployment_region:
-            raise ValueError(
-                "Missing 'deployment_region' in utility_config for AmazonBedrockExecutor."
-            )
-        if not agent_id:
-            raise ValueError(
-                "Missing 'agent_id' in utility_config for AmazonBedrockExecutor."
-            )
-        if not alias_id:
-            raise ValueError(
-                "Missing 'alias_id' in utility_config for AmazonBedrockExecutor."
-            )
+        # Validate required fields in utility_config.
+        client_key_varname = amazon_bedrock_config.client_key
+        client_secret_varname = amazon_bedrock_config.client_secret
+        deployment_region = amazon_bedrock_config.deployment_region
+        agent_id = amazon_bedrock_config.agent_id
+        alias_id = amazon_bedrock_config.alias_id
+        session_id = amazon_bedrock_config.session_id
 
         try:
             # Initialize AWS session manager

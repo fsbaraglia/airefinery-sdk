@@ -15,6 +15,7 @@ All responses are validated using Pydantic models (`ImagesResponse`,
 import aiohttp
 import requests
 
+from air import __version__
 from air.types import ImagesResponse, SegmentationResponse
 from air.types.constants import DEFAULT_TIMEOUT
 
@@ -28,17 +29,22 @@ class ImagesClient:
     """
 
     def __init__(
-        self, base_url: str, api_key: str, default_headers: dict[str, str] | None = None
+        self,
+        base_url: str,
+        api_key: str,
+        default_headers: dict[str, str] | None = None,
     ):
         """
         Initializes the synchronous image client.
 
         Args:
             base_url (str): Base URL of the API (e.g., "https://api.airefinery.accenture.com")
+
             api_key (str): API key for authorization
             default_headers (dict[str, str] | None): Optional headers applied to every request
         """
         self.base_url = base_url
+
         self.api_key = api_key
         self.default_headers = default_headers or {}
 
@@ -87,8 +93,9 @@ class ImagesClient:
 
         # Base authorization and JSON headers.
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         # Merge in default headers
         headers.update(self.default_headers)
@@ -145,8 +152,9 @@ class ImagesClient:
         }
 
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         headers.update(self.default_headers)
         if extra_headers:
@@ -178,10 +186,12 @@ class AsyncImagesClient:
 
         Args:
             base_url (str): Base URL of the API (e.g., "https://api.airefinery.accenture.com")
+
             api_key (str): API key for authorization
             default_headers (dict[str, str] | None): Optional headers applied to every request
         """
         self.base_url = base_url
+
         self.api_key = api_key
         self.default_headers = default_headers or {}
 
@@ -230,8 +240,9 @@ class AsyncImagesClient:
 
         # Base authorization and JSON headers.
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         # Merge in default headers.
         headers.update(self.default_headers)
@@ -289,8 +300,9 @@ class AsyncImagesClient:
         }
 
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         headers.update(self.default_headers)
         if extra_headers:

@@ -41,7 +41,8 @@ Example usage:
 import aiohttp
 import requests
 
-from air.types import SyncPage, AsyncPage, Model
+from air import __version__
+from air.types import AsyncPage, Model, SyncPage
 
 
 class ModelsClient:  # pylint: disable=too-few-public-methods
@@ -63,11 +64,13 @@ class ModelsClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): Base URL of the API (e.g., "https://api.airefinery.accenture.com").
+
             api_key (str): API key for authorization.
             default_headers (dict[str, str] | None): Headers that apply to
                 every request from this client.
         """
         self.base_url = base_url
+
         self.api_key = api_key
         self.default_headers = default_headers or {}
 
@@ -97,8 +100,9 @@ class ModelsClient:  # pylint: disable=too-few-public-methods
 
         # Built-in authorization/JSON headers
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         # Merge default_headers
         headers.update(self.default_headers)
@@ -137,11 +141,13 @@ class AsyncModelsClient:  # pylint: disable=too-few-public-methods
 
         Args:
             base_url (str): Base URL of the API (e.g., "https://api.airefinery.accenture.com").
+
             api_key (str): API key for authorization.
             default_headers (dict[str, str] | None): Headers that apply to
                 every request from this client.
         """
         self.base_url = base_url
+
         self.api_key = api_key
         self.default_headers = default_headers or {}
 
@@ -170,8 +176,9 @@ class AsyncModelsClient:  # pylint: disable=too-few-public-methods
         payload = kwargs
 
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "sdk_version": __version__,
+            "Authorization": f"Bearer {self.api_key}",
         }
         headers.update(self.default_headers)
         if extra_headers:

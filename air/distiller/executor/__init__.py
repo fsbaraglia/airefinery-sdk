@@ -37,6 +37,7 @@ _AGENT_CLASS_MAP = {
         "air.distiller.executor.databricks_executor",
         "DatabricksExecutor",
     ),
+    "HumanAgent": ("air.distiller.executor.human_executor", "HumanExecutor"),
 }
 
 # Cache for already-imported executor classes, so we import them only once.
