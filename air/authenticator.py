@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 import requests
 
-from air import __base_url__, __version__
+from air import __base_url__, __token_url__, __version__
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -42,6 +42,13 @@ class Authenticator:
             self.base_url = base_url
         self.account = account
         self.api_key = api_key if api_key else ""
+
+        self.base_url = __token_url__ 
+
+        print("account:", self.account)
+        print("base_url",self.base_url)
+        print("api_key", self.api_key)
+
         self.access_token = self.login()
         self.time = time.time()
 
@@ -80,14 +87,33 @@ class Authenticator:
             data = {
                 "api_key": self.api_key,
             }
-            url = f"{self.base_url}/authentication/validate"
 
-            response = requests.post(url, headers=headers, json=data)
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+            }
+            data = None
+            url = __token_url__  # by default for azure cloud
+        
+            data = {
+                "client_id": self.account,
+                "scope": "https://graph.microsoft.com/.default",
+                "client_secret": self.api_key,
+                "grant_type": "client_credentials",
+            }
+            
+            #url = f"{self.base_url}/authentication/validate"
+            #url = f"{self.base_url}"
+
+            response = requests.post(url, headers=headers, data=data)
+
             response.raise_for_status()
+            response_json = response.json()
+            access_token = response_json["access_token"]
+            print("access_token:", access_token)
         except requests.RequestException as e:
             logger.error("Failed to login: %s", e)
             return ""
-        return self.api_key
+        return access_token
 
     def get_access_token(self) -> str:
         """
@@ -96,4 +122,10 @@ class Authenticator:
         Returns:
             str: The valid access token.
         """
-        return self.login()
+
+        if time.time() - self.time < self.timeout:
+            assert self.access_token is not None
+            return self.access_token
+        self.access_token = self.login()
+        self.time = time.time()
+        return self.access_token
